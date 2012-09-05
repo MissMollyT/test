@@ -1,0 +1,86 @@
+<?php
+/**
+ * Implements hook_votingapi_insert().
+ */
+function fivestar_anonymous_vote_limit_votingapi_insert($votes) {
+	$limit=fivestar_anonymous_vote_limit_limit();
+	// saving cookie here
+	$votes_left=fivestar_anonymous_vote_limit_votes_left();
+	if ($votes_left) {
+		watchdog('fivestar_anonymous_vote_limit', 'saving cookie, votes left: '.$votes_left, null, WATCHDOG_DEBUG);
+		$vote_count=$limit-$votes_left;
+		$vote_count++;
+		user_cookie_save(array('voted' => $vote_count));
+	}
+}
+
+/**
+ * Implementation of hook_fivestar_access().
+ *
+ * This hook is called before every vote is cast through Fivestar. It allows
+ * modules to allow or deny voting on any type of entity, such as nodes, users, or
+ * comments.
+ *
+ * @param $entity_type
+ *   Type entity.
+ * @param $id
+ *   Identifier within the type.
+ * @param $tag
+ *   The VotingAPI tag string.
+ * @param $uid
+ *   The user ID trying to cast the vote.
+ *
+ * @return boolean or NULL
+ *   Returns TRUE if voting is supported on this object.
+ *   Returns NULL if voting is not supported on this object by this module.
+ *   If needing to absolutely deny all voting on this object, regardless
+ *   of permissions defined in other modules, return FALSE. Note if all
+ *   modules return NULL, stating no preference, then access will be denied.
+ *
+ * @see fivestar_validate_target()
+ * @see fivestar_fivestar_access()
+ */
+function fivestar_anonymous_vote_limit_fivestar_access($entity_type, $id, $tag, $uid) {
+	watchdog('fivestar_voteonce', 'checking access before voting', null, WATCHDOG_DEBUG);
+	if (fivestar_anonymous_vote_limit_votes_left()) { // every positive number will be true
+		watchdog('fivestar_anonymous_vote_limit', 'checking access before voting: true', null, WATCHDOG_DEBUG);
+		return NULL;
+		
+	} else {
+		watchdog('fivestar_anonymous_vote_limit', 'checking access before voting: false', null, WATCHDOG_DEBUG);
+		return FALSE;
+	}
+}
+
+/**
+ * @return boolean or int
+ *   Return int count of votes left
+ *   Return FALSE if the vote limit has been reached
+ */
+function fivestar_anonymous_vote_limit_votes_left() {
+	$limit=fivestar_anonymous_vote_limit_limit();
+	watchdog('fivestar_anonymous_vote_limit', 'detecting user vote status', null, WATCHDOG_DEBUG);
+	if (isset($_COOKIE['Drupal_visitor_voted'])&&$_COOKIE['Drupal_visitor_voted']>=$limit) {
+		watchdog('fivestar_anonymous_vote_limit', 'user has no votes left', null, WATCHDOG_DEBUG);
+		return FALSE;
+	} elseif (isset($_COOKIE['Drupal_visitor_voted'])) {
+		watchdog('fivestar_anonymous_vote_limit', 'user has votes left', null, WATCHDOG_DEBUG);
+		return $limit-$_COOKIE['Drupal_visitor_voted'];
+	} else {
+		return $limit;
+	}
+}
+
+/**
+ * The default limit that this module should enable.
+ */
+function _fivestar_anonymous_vote_limit_limit_default() {
+	return 10;
+}
+
+/**
+ * Implements hook_overlay_paths().
+ */
+function fivestar_anonymous_vote_limit_limit() {
+	return variable_get('fivestar_anonymous_vote_limit', _fivestar_anonymous_vote_limit_limit_default());
+}
