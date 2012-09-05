@@ -1,1 +1,5 @@
 name = Fivestar anonymous vote limit
+description = limits the count of total votes a anonymous user can do
+package = Voting
+core = 7.x
+dependencies[] = fivestar
