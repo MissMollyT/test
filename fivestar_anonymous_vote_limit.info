@@ -3,3 +3,6 @@ description = limits the count of total votes a anonymous user can do
 package = Voting
 core = 7.x
 dependencies[] = fivestar
+files[]=fivestar_anonymous_vote_limit.module
+files[]=fivestar_anonymous_vote_limit.admin.inc
+configure=admin/config/fivestar_anonymous_vote_limit

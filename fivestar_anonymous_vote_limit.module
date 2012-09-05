@@ -1,5 +1,21 @@
 <?php
 /**
+ * implementation of hook_menu().
+ */
+function fivestar_anonymous_vote_limit_menu() {
+	$items['admin/config/fivestar_anonymous_vote_limit'] = array(
+			'title'=> 'fivestar_anonymous_vote_limit settings',
+			'description' => 'adjust fivestar_anonymous_vote_limit options',
+			'page callback'=>'drupal_get_form',
+			'page arguments'=>array('fivestar_anonymous_vote_limit_admin_settings'),
+			'access arguments' => array('administer site configuration'),
+			'type'=>MENU_NORMAL_ITEM,
+			'file'=>'fivestar_anonymous_vote_limit.admin.inc'
+	);
+	return $items;
+}
+
+/**
  * Implements hook_votingapi_insert().
  */
 function fivestar_anonymous_vote_limit_votingapi_insert($votes) {
@@ -82,5 +98,5 @@ function _fivestar_anonymous_vote_limit_limit_default() {
  * Implements hook_overlay_paths().
  */
 function fivestar_anonymous_vote_limit_limit() {
-	return variable_get('fivestar_anonymous_vote_limit', _fivestar_anonymous_vote_limit_limit_default());
+	return variable_get('fivestar_anonymous_vote_limit_limit', _fivestar_anonymous_vote_limit_limit_default());
 }
